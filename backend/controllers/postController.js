@@ -2,14 +2,16 @@ import User from "../models/userModel.js";
 import Post from "../models/postModel.js";
 
 export const getAllPosts = async (req, res) => {
+  console.log("getAllPosts");
   try {
     const authUser = await User.findById(req.user._id);
     const posts = await Post.find({
       author: { $nin: authUser.blockedBy },
     }).populate({
       path: "author",
-      select: "username profilePicture privateAccount _id",
-    });
+      select: "username displayName profilePicture privateAccount _id",
+    })
+    .sort({ createdAt: -1 });
 
     const allowedPosts = posts.filter((post) => {
         const author = post.author;
@@ -36,7 +38,12 @@ export const getAllPosts = async (req, res) => {
 export const getFollowingPosts = async (req, res) => {
   try {
     const authUser = await User.findById(req.user._id);
-    const posts = await Post.find({ author: { $in: authUser.following } });
+    const posts = await Post.find({ author: { $in: authUser.following } })
+    .populate({
+      path: "author",
+      select: "username displayName profilePicture privateAccount _id",
+    })
+    .sort({ createdAt: -1 });
     if (posts.length === 0) {
       return res.status(200).json({ message: "No posts found" });
     }
@@ -60,7 +67,8 @@ export const getProfilePosts = async (req, res) => {
     if (user.blockedUsers.includes(authUser._id)) {
       return res.status(401).json({ message: "You are blocked" });
     }
-    const posts = await Post.find({ author: user._id });
+    const posts = await Post.find({ author: user._id })
+    .sort({ createdAt: -1 });
     if (posts.length === 0) {
       return res.status(200).json({ message: "No posts found" });
     }
@@ -82,9 +90,58 @@ export const createPost = async (req, res) => {
     authUser.posts.push(newPost._id);
     await authUser.save();
     await newPost.save();
+    const post = await newPost.populate({
+      path: "author",
+      select: "username displayName profilePicture _id",
+    })
     res.status(201).json(newPost);
   } catch (error) {
     console.log("createPost error", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPost = async (req, res) => {
+  console.log("getPost in postController");
+  try {
+    const authUser = await User.findById(req.user._id);
+    const post = await Post.findById(req.params.postId).populate({
+      path: "author",
+      select: "username displayName profilePicture _id privateAccount",
+    })
+    .populate({
+      path: "replies",
+      select: "author text createdAt",
+      populate: {
+        path: "author",
+        select: "username displayName profilePicture _id privateAccount",
+      }
+    });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    if (authUser.blockedBy.includes(post.author._id)) {
+      return res.status(401).json({ message: "You are blocked" });
+    };
+
+    if (post.author.privateAccount && !req.user.following.includes(post.author._id) && post.author._id.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: "Private account" });
+    }
+
+    post.replies = post.replies.filter((reply) => {
+      if (authUser.blockedBy.includes(reply.author._id)) {
+        return false;
+      }
+      return true;
+    })
+
+    post.replies = post.replies.sort((a, b) => {
+      return b.createdAt - a.createdAt;
+    });
+    console.log(post);
+    res.status(200).json(post);
+  } catch (error) {
+    console.log("getPost error", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -128,7 +185,7 @@ export const likePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId ).populate({
       path: "author",
-      select: "username profilePicture privateAccount _id parent",
+      select: "username displayName profilePicture privateAccount _id parent",
     });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -186,7 +243,7 @@ export const replyToPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId).populate({
       path: "author",
-      select: "username profilePicture privateAccount blockedUsers",
+      select: "username displayName profilePicture privateAccount blockedUsers",
     });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -238,8 +295,9 @@ export const getReplies = async (req, res) => {
     const repliesPromise =  post.replies.map((id) => 
       Post.findById(id).populate({
         path: "author",
-        select: "username profilePicture privateAccount blockedUsers",
-      }));
+        select: "username displayName profilePicture privateAccount blockedUsers",
+      }))
+      .sort({ createdAt: -1 });
 
     const replies = await Promise.all(repliesPromise);
     console.log(replies);
@@ -265,7 +323,7 @@ export const getParentPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId).populate({
       path: "author",
-      select: "username profilePicture privateAccount blockedUsers",
+      select: "username displayName profilePicture privateAccount blockedUsers",
     });
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
@@ -281,7 +339,7 @@ export const getParentPost = async (req, res) => {
     }
     const parentPost = await Post.findById(post.parentPost).populate({
       path: "author",
-      select: "username profilePicture privateAccount blockedUsers",
+      select: "username displayName profilePicture privateAccount blockedUsers",
     })
     if (!parentPost) {
       return res.status(404).json({ message: "Post does not have a parent" });

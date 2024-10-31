@@ -49,45 +49,49 @@ export const signup = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-    const {username, email, password} = req.body;
+    const { username, email, password } = req.body;
     try {
         if ((!username && !email) || !password) {
-            return res.status(400).json({message: "Invalid user data"});
+            return res.status(400).json({ message: "Invalid user data" });
         }
 
-        const user = await User.findOne({username});
+        let user = await User.findOne({ username });
         if (!user) {
-            user = await User.findOne({email});
+            user = await User.findOne({ email });
             if (!user) {
-                return res.status(400).json({message: "User not found"});
+                return res.status(400).json({ message: "User not found" });
             }
         }
 
+        console.log("username: ", username);
+
         if (user && (await bcrypt.compare(password, user.password))) {
+            console.log("logged in user:" + user.username);
             console.log(user._id);
-            generateToken(user._id, res);
+            generateToken(user._id, res); 
             res.status(200).json({
                 _id: user._id,
-                username: user.username, 
-                email: user.email, 
-                displayName: user.displayName, 
-                followers: user.followers, 
+                username: user.username,
+                email: user.email,
+                displayName: user.displayName,
+                followers: user.followers,
                 following: user.following,
                 blockedUsers: user.blockedUsers,
-                privateAccount: user.privateAccount});
+                privateAccount: user.privateAccount,
+            });
         } else {
-            return res.status(400).json({message: "Invalid user data"});
+            return res.status(400).json({ message: "Invalid user data" });
         }
-    }
-    catch (error) {
+    } catch (error) {
         console.log("login error", error.message);
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 }
 
 export const logout = async (req, res) => {
     try {
-        res.clearCookie("token");
+        console.log('clear cookie');
+        res.cookie("token", "", {maxAge: 0});
         res.status(200).json({message: "Logged out successfully"});
     }
     catch (error) {

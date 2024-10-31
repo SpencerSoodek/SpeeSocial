@@ -8,7 +8,7 @@
 
  export const signup = createAsyncThunk('auth/signup', async(userData, thunkAPI) => {
    try{
-      const response = await axios.post('http://localhost:3000/api/auth/signup', {
+      const response = await axios.post('/api/auth/signup', {
          username: userData.username,
          email: userData.email,
          password: userData.password,
@@ -28,13 +28,20 @@
 
 export const login = createAsyncThunk('auth/login', async(userData, thunkAPI) => {
    try{
-      const response = await axios.post('http://localhost:3000/api/auth/login', {
+      const response = await axios.post('/api/auth/login', {
          username: userData.username,
          email: userData.email,
          password: userData.password,
-      });
+      },
+      {
+         headers: { 'Content-Type': 'application/json' },
+         withCredentials: true
+      }
+      );
 
       const user = response.data;
+      console.log(response);
+      console.log(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
       return response.data;
    }
@@ -46,11 +53,13 @@ export const login = createAsyncThunk('auth/login', async(userData, thunkAPI) =>
 
 export const logout = createAsyncThunk('auth/logout', async(thunkAPI) => {
    try{
-      const response = await axios.post('http://localhost:3000/api/auth/logout');
+      const response = await axios.post('/api/auth/logout');
       localStorage.removeItem('currentUser');
+      console.log("response" + response.message);
       return response.data;
    }
    catch(error) {
+      console.log("error" + error);
       return thunkAPI.rejectWithValue(error.response.data.errors);
    }
 })
