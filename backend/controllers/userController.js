@@ -3,19 +3,21 @@ import FollowRequest from "../models/followRequestModel.js";
 
 export const profile = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select("-password");
+        const authUser = await User.findById(req.user._id);
+        const user = await User.findOne({username: req.params.username}).select("-password, -posts");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+        const myAccount = authUser._id.equals(user._id);
+        const following = authUser.following.includes(user._id);
+        const blocked = user.blockedUsers.includes(req.user._id);
+        console.log(user);
         return res.status(200).json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            displayName: user.displayName,
-            followers: user.followers,
-            following: user.following,
-            blockedUsers: user.blockedUsers,
-            privateAccount: user.privateAccount
+            myAccount: myAccount,
+            profile: user,
+            following: following,
+            privateAccount: user.privateAccount,
+            blocked: blocked
         })
     } catch (error) {
         console.log("profile error", error.message);

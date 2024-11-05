@@ -61,14 +61,18 @@ export const getProfilePosts = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    if (user.privateAccount && !authUser.following.includes(user._id)) {
+    if (user.privateAccount && !authUser.following.includes(user._id) && !authUser._id.equals(user._id)) {
       return res.status(401).json({ message: "Private account" });
     }
     if (user.blockedUsers.includes(authUser._id)) {
       return res.status(401).json({ message: "You are blocked" });
     }
     const posts = await Post.find({ author: user._id })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "author",
+      select: "username displayName profilePicture privateAccount _id",
+    });
     if (posts.length === 0) {
       return res.status(200).json({ message: "No posts found" });
     }
@@ -102,7 +106,6 @@ export const createPost = async (req, res) => {
 };
 
 export const getPost = async (req, res) => {
-  console.log("getPost in postController");
   try {
     const authUser = await User.findById(req.user._id);
     const post = await Post.findById(req.params.postId).populate({
@@ -111,6 +114,14 @@ export const getPost = async (req, res) => {
     })
     .populate({
       path: "replies",
+      select: "author text createdAt",
+      populate: {
+        path: "author",
+        select: "username displayName profilePicture _id privateAccount",
+      }
+    })
+    .populate({
+      path: "parentPost",
       select: "author text createdAt",
       populate: {
         path: "author",
@@ -141,7 +152,6 @@ export const getPost = async (req, res) => {
     console.log(post);
     res.status(200).json(post);
   } catch (error) {
-    console.log("getPost error", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -253,7 +263,8 @@ export const replyToPost = async (req, res) => {
     }
     if (
       post.author.privateAccount &&
-      !authUser.following.includes(post.author._id)
+      !authUser.following.includes(post.author._id) &&
+      post.author._id.toString() !== req.user._id.toString()
     ) {
       return res.status(401).json({ message: "Private account" });
     }
@@ -266,7 +277,11 @@ export const replyToPost = async (req, res) => {
     post.replies.push(newPost._id);
     await post.save();
     await newPost.save();
-    res.status(201).json(newPost);
+    const returnPost = await newPost.populate({
+      path: "author",
+      select: "username displayName profilePicture _id",
+    })
+    res.status(201).json(returnPost);
   } catch (error) {
     console.log("replyToPost error", error.message);
     res.status(500).json({ message: error.message });

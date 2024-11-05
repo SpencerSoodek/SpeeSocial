@@ -10,7 +10,7 @@ const Post = (props) => {
         navigate(`/post/${_id}`);
     }
     return (
-        <div className="border border-neutral-content p-3 bg-base-200 mx-auto text-left" onClick={handleClick}>
+        <div className="border border-neutral-content p-3 bg-base-300 mx-auto text-left" onClick={handleClick}>
             <div>
             <div className="flex items-center whitespace-nowrap mb-2">
                 <p className="text-xl font-semibold text-primary mr-2">{displayName}</p>

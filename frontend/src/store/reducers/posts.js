@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import {addReply} from './postPageReducer'
 
 const initialState = {
     posts: [],
@@ -51,6 +52,23 @@ export const createPost = createAsyncThunk('posts/createPost', async(postData, t
     }
 })
 
+export const createReply = createAsyncThunk('posts/createReply', async(postData, thunkAPI) => {
+    try {
+        const response = await axios.post(('/api/posts/reply/' + postData.parentPost._id), {
+                text: postData.replyText}, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+        })
+        console.log("new reply, ", response.data);
+        thunkAPI.dispatch(addReply(response.data));
+        
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return thunkAPI.rejectWithValue(error.response.data.errors);
+    }
+})
+
 const postsSlice = createSlice({
     name: "posts",
     initialState,
@@ -85,11 +103,22 @@ const postsSlice = createSlice({
         .addCase(createPost.fulfilled, (state, action) => {
             state.isLoading = false;
             state.posts.push(action.payload);
-        })
+        })  
         .addCase(createPost.rejected, (state, action) => {
             state.isLoading = false;
             state.isError = true;
             state.error = action.error.message
+        })
+        .addCase(createReply.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(createReply.fulfilled, (state) => {
+            state.isLoading = false;
+        })
+        .addCase(createReply.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.error = action.error.message;
         })
     }
 });

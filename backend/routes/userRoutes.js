@@ -4,7 +4,7 @@ import { profile, followUser, unfollowUser, blockUser, unblockUser } from "../co
 
 const router = express.Router();
 
-router.get("/profile/:id", protectRoute, profile);
+router.get("/profile/:username", protectRoute, profile);
 router.post("/follow/:id", protectRoute, followUser);
 router.post("/unfollow/:id", protectRoute, unfollowUser);
 router.post("/block/:id", protectRoute, blockUser);

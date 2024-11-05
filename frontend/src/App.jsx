@@ -7,6 +7,7 @@ import Signup from './pages/auth/signup'
 import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import PostPage from './pages/PostPage/PostPage'
+import ProfilePage from './pages/ProfilePage/ProfilePage'
 
 function App() {
   const auth = useSelector(state => state.auth);
@@ -18,6 +19,7 @@ function App() {
         <Route path="/login" element={auth.currentUser ? <Navigate to="/" /> : <Login />} />
         <Route path="/signup" element={auth.currentUser ? <Navigate to="/" /> : <Signup />} />
         <Route path="/post/:id" element={auth.currentUser ? <PostPage /> : <Navigate to="/login"/>} />
+        <Route path="/profile/:username" element = {auth.currentUser ? <ProfilePage /> : <Navigate to="/login"/>} />
       </Routes>
     </div>
   )

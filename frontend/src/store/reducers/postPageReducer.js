@@ -9,13 +9,11 @@ const initialState = {
 }
 
 export const getPost = createAsyncThunk('postPageReducer/getPost', async(postId, thunkAPI) => {
-    console.log("getPost", postId);
     try{
         const response = await axios.get(('/api/posts/getpost/' + postId), {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true
         })
-        console.log("response",response.data)
         return response.data;
     }
     catch(error) {
@@ -26,21 +24,25 @@ export const getPost = createAsyncThunk('postPageReducer/getPost', async(postId,
 const postPageSlice = createSlice({
     name: "postPage",
     initialState,
+    reducers: {
+        addReply: (state, action) => {
+            state.post.replies.push(action.payload);
+        }
+    },
     extraReducers: builder => {
         builder.addCase(getPost.pending, (state) => {
             state.isLoading = true;
         })
         .addCase(getPost.fulfilled, (state, action) => {
-            console.log(state.post);
             state.isLoading = false;
             state.post = action.payload;
         })
         .addCase(getPost.rejected, (state) => {
             state.isLoading = false;
             state.isError = true;
-            console.log("error");
         })
     }
 });
 
+export const { addReply } = postPageSlice.actions;
 export default postPageSlice.reducer;
