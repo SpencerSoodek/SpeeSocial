@@ -41,7 +41,7 @@ export const followUser = async (req, res) => {
         if (user.privateAccount) {
             const followRequest = await FollowRequest.findOne({ sender: req.user._id, receiver: req.params.id, status: "pending" });
             if (followRequest) {
-                return res.status(400).json({ message: "Follow request already sent" });
+                return res.status(400).json({ message: "Follow request already sent" , followStatus: "requested"});
             }
             if (!followRequest) {
                 const newFollowRequest = new FollowRequest({
@@ -49,14 +49,14 @@ export const followUser = async (req, res) => {
                     receiver: req.params.id
                 });
                 await newFollowRequest.save();
-                return res.status(200).json({ message: "Follow request sent" });
+                return res.status(200).json({ message: "Follow request sent" , followStatus: "followed"});
             }
         }
         user.followers.push(req.user._id);
         authUser.following.push(req.params.id);
         await user.save();
         await authUser.save();
-        return res.status(200).json({ message: "User followed" });
+        return res.status(200).json({ message: "User followed" , followStatus: "requested"});
     } catch (error) {
         console.log("followUser error", error.message);
         res.status(500).json({ message: error.message });
@@ -133,6 +133,34 @@ export const unblockUser = async (req, res) => {
         return res.status(200).json({ message: "User unblocked" });
     } catch (error) {
         console.log("unblockUser error", error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const isFollowingUser = async (req, res) => {
+    try {
+        const authUser = await User.findById(req.user._id);
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (req.user._id.equals(req.params.id)) {
+            return res.status(200).json({ followingStatus: "me" });
+        }
+        if (authUser.blockedBy.includes(req.params.id)) {
+            return res.status(400).json({ message: "User is blocked" });
+        }
+        if (authUser.following.includes(req.params.id)) {
+            return res.status(200).json({ followingStatus: "following" });
+        }
+        const followRequest = await FollowRequest.findOne({ sender: req.user._id, receiver: req.params.id, status: "pending" });
+        if (followRequest) {
+            return res.status(200).json({ followingStatus: "requested" });
+        }
+        return res.status(200).json({ followingStatus: "not following" });
+    }
+    catch (error) {
+        console.log("isFollowingUser error", error.message);
         res.status(500).json({ message: error.message });
     }
 }

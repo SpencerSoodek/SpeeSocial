@@ -7,6 +7,7 @@ const initialState = {
     profile: undefined,
     isLoading: false,
     isError: false,
+    myAccount: false,
     error: '',
     posts: []
 };
@@ -53,7 +54,7 @@ const profileSlice = createSlice({
             state.isLoading = false;
             if (localStorage.getItem)
             state.profile = action.payload.profile;
-            state.private = action.payload.private;
+            state.private = action.payload.privateAccount;
             state.blocked = action.payload.blocked;
         })
         .addCase(getProfile.rejected, (state, action) => {
