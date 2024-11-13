@@ -113,7 +113,7 @@ export const currUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     try {
-        const {username, password, newPassword, email, displayName, privateAccount} = req.body;
+        const {username, password, newPassword, email, displayName, privateAccount, bio} = req.body;
         const user = await User.findById(req.user._id);
         if (!user) {
             return res.status(400).json({message: "User not found"});
@@ -140,6 +140,9 @@ export const updateUser = async (req, res) => {
             } else {
                 user.email = email;
             }
+        }
+        if (bio) {
+            user.bio = bio;
         }
         if (displayName) {
             user.displayName = displayName;

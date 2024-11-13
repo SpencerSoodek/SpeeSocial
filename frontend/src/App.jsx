@@ -8,18 +8,22 @@ import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import PostPage from './pages/PostPage/PostPage'
 import ProfilePage from './pages/ProfilePage/ProfilePage'
+import NavBar from './components/NavBar'
+import BlockedUsers from './pages/Settings/BlockedUsers'
 
 function App() {
   const auth = useSelector(state => state.auth);
 
   return (
-    <div className = 'mx-w-10'>
+    <div>  
+      {auth.currentUser && <NavBar />}
       <Routes>
         <Route path="/" element={auth.currentUser ? <Home /> : <Navigate to="/login"/>} />
         <Route path="/login" element={auth.currentUser ? <Navigate to="/" /> : <Login />} />
         <Route path="/signup" element={auth.currentUser ? <Navigate to="/" /> : <Signup />} />
         <Route path="/post/:id" element={auth.currentUser ? <PostPage /> : <Navigate to="/login"/>} />
         <Route path="/profile/:username" element = {auth.currentUser ? <ProfilePage /> : <Navigate to="/login"/>} />
+        <Route path="/blockedUsers" element = {auth.currentUser ? <BlockedUsers /> : <Navigate to="/login"/>} />
       </Routes>
     </div>
   )

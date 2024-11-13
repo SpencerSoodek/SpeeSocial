@@ -16,7 +16,7 @@ const CreatePost = () => {
 
 
     return (
-        <div className="bg-base-200 mx-auto border border-color-content-neutral p-3 text-left">
+        <div className="bg-base-200 mx-auto border border-color-content-neutral border-t-0 p-3 text-left">
             <p className="text-xl font-semibold text-primary mr-2 p-2">{user.displayName}</p>
             <div contentEditable="true" className="bg-base-200 w-full p-2 resize-none focus:outline-none"
                 placeholder="What's up?"

@@ -15,6 +15,9 @@ const userModel = new mongoose.Schema({
         type: String,
         required: true
     },
+    bio: {
+        type: String
+    },
     displayName: {
         type: String,
     },

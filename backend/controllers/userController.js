@@ -164,3 +164,17 @@ export const isFollowingUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const blockedUsers = async (req, res) => {
+    try {
+        const authUser = await User.findById(req.user._id).populate({
+            path: "blockedUsers",
+            select: "username displayName profilePicture _id",
+        });
+        return res.status(200).json(authUser.blockedUsers);
+    }
+    catch (error) {
+        console.log("blockedUsers error", error.message);
+        res.status(500).json({ message: error.message });
+    }
+}

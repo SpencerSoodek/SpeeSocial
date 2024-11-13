@@ -8,15 +8,21 @@ import Post from "../../components/Post";
 const ProfilePage = () => {
     const { username } = useParams();
     const dispatch = useDispatch();
+    const auth = useSelector(state => state.auth);
 
     const { profile, posts, blocked, private: isPrivate, isLoading, isError, errorMessage, following } = useSelector(state => state.profileReducer);
     const { followingStatus, isLoading: followingIsLoading, isError: followingIsError } = useSelector(state => state.followReducer.followingUsers[profile?._id] || {});
     
     
     const currentUser = useMemo(() => {
-        const user = localStorage.getItem('currentUser');
-        return user ? JSON.parse(user) : null;
+        const user = auth.currentUser
+        return user;
     }, []);
+
+    const myAccount = useMemo(() => {
+        if (!profile) return false;
+        return profile._id === auth.currentUser._id;
+    }, [auth.currentUser._id, profile]);
 
     useEffect(() => {
         if (username) {
@@ -56,14 +62,15 @@ const ProfilePage = () => {
         <div className="max-w-lg mx-auto">
             {isLoading ? (
                 <p>Loading...</p>
-            ) : isError ? (
-                <p>Error: {errorMessage || 'Something went wrong'}</p>
             ) : (
                 <>
+                {
+                    console.log("blocked", blocked, "isPrivate", isPrivate, "following", following, "myAccount", myAccount)
+                }
                 <div className="border border-neutral-content p-3 bg-base-100 mx-auto text-left pt-5 pb-5">
-                    <h1 className="text-2xl font-bold mb-4 text-primary">{profile?.displayName || 'User Profile'}</h1>
-                    <p className="text-lg text-gray-500 pb-3">{profile?.username}</p>
-                    <p className="text-lg">{profile?.bio}</p>
+                    {profile.displayName &&<h1 className="text-2xl font-bold mb-4 text-primary">{profile?.displayName}</h1>}
+                    <p className="text-lg font-semibold text-gray-500 pb-3">{profile?.username}</p>
+                    {profile?.bio && <p className="text-md text-gray-50">{profile?.bio}</p>}
                     <div className="flex justify-end mb-2">
                         {profile?.myAccount ? (
                             <button className="btn btn-primary btn-md">Edit Profile</button>
@@ -88,8 +95,9 @@ const ProfilePage = () => {
                     </div>
                 </div>
                 
-                <h2>Posts</h2>
-                    {(isPrivate && !profile.following && !profile.myAccount) ? (
+                {blocked ? 
+                    <p>You are blocked by this user.</p> :
+                    (isPrivate && !following && !myAccount) ? (
                         <p>This user is private. Only followers can view their posts.</p>
                     ) : posts.length > 0 ? (
                         <ul>
@@ -100,6 +108,7 @@ const ProfilePage = () => {
                     ) : (
                         <p>No posts available</p>
                     )}
+            
 
                 </>
             )}

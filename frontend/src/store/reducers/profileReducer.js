@@ -8,6 +8,7 @@ const initialState = {
     isLoading: false,
     isError: false,
     myAccount: false,
+    following: false,
     error: '',
     posts: []
 };
@@ -53,6 +54,7 @@ const profileSlice = createSlice({
         .addCase(getProfile.fulfilled, (state, action) => {
             state.isLoading = false;
             if (localStorage.getItem)
+            state.following = action.payload.following;
             state.profile = action.payload.profile;
             state.private = action.payload.privateAccount;
             state.blocked = action.payload.blocked;

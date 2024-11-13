@@ -7,9 +7,19 @@ export const getAllPosts = async (req, res) => {
     const authUser = await User.findById(req.user._id);
     const posts = await Post.find({
       author: { $nin: authUser.blockedBy },
-    }).populate({
+      author: { $nin: authUser.blockedUsers },
+    })
+    .populate({
       path: "author",
       select: "username displayName profilePicture privateAccount _id",
+    })
+    .populate({
+      path: "parentPost",
+      populate: {
+        path: "author",
+        select: "username displayName _id privateAccount"
+      },
+      select: "author"
     })
     .sort({ createdAt: -1 });
 
@@ -42,6 +52,14 @@ export const getFollowingPosts = async (req, res) => {
     .populate({
       path: "author",
       select: "username displayName profilePicture privateAccount _id",
+    })
+    .populate({
+      path: "parentPost",
+      populate: {
+        path: "author",
+        select: "username displayName"
+      },
+      select: "author"
     })
     .sort({ createdAt: -1 });
     if (posts.length === 0) {
