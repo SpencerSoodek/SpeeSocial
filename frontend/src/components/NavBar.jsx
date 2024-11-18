@@ -20,6 +20,10 @@ const NavBar = () => {
         navigate("/blockedUsers");
     }
 
+    const navToFollowRequests = () => {
+        navigate("/followRequests");
+    }
+
     const onLogout = (e) => {
         e.preventDefault();
         dispatch(logout()).then(() => {
@@ -46,6 +50,8 @@ const NavBar = () => {
                     <ul tabIndex={0} className = "menu menu-sm dropdown-content bg-neutral rounded-box w-52 z-[1] mt-3 p-2">
                         <li>
                             <a onClick={onLogout}>Logout</a>
+                            {auth.currentUser && auth.currentUser.privateAccount &&
+                            <a onClick={navToFollowRequests}>View Follow Requests</a>}
                             <a onClick={navToBlockedUsers}>View Blocked Users</a>
                         </li>
                     </ul>

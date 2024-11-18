@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getProfile, getProfilePosts } from "../../store/reducers/profileReducer";
+import { getProfile, getProfilePosts, unfollowed } from "../../store/reducers/profileReducer";
 import { followingUser, followUser, unfollowUser } from "../../store/reducers/followReducer";
 import Post from "../../components/Post";
 
@@ -17,12 +17,11 @@ const ProfilePage = () => {
     const currentUser = useMemo(() => {
         const user = auth.currentUser
         return user;
-    }, []);
+    }, [auth.currentUser, profile]);
 
     const myAccount = useMemo(() => {
-        if (!profile) return false;
-        return profile._id === auth.currentUser._id;
-    }, [auth.currentUser._id, profile]);
+        return profile && profile._id === auth.currentUser?._id;
+    }, [profile, auth.currentUser]);
 
     useEffect(() => {
         if (username) {
@@ -40,7 +39,7 @@ const ProfilePage = () => {
             console.log(profile._id);
             dispatch(getProfilePosts(profile._id));
         }
-    }, [profile, blocked, isPrivate, dispatch, currentUser]);
+    }, [profile, blocked, isPrivate, dispatch, currentUser, following]);
 
     useEffect(() => {
         if (!blocked && profile?._id) {
@@ -55,12 +54,14 @@ const ProfilePage = () => {
 
     const onUnfollow = (e) => {
         e.preventDefault();
-        dispatch(unfollowUser(profile._id));
+        dispatch(unfollowUser(profile._id)).then(() => {
+            dispatch(unfollowed());
+        });
     }
 
     return (
         <div className="max-w-lg mx-auto">
-            {isLoading ? (
+            {isLoading || !profile? (
                 <p>Loading...</p>
             ) : (
                 <>
@@ -82,9 +83,9 @@ const ProfilePage = () => {
                                     case "following":
                                         return <button className="btn btn-secondary btn-md" onClick={onUnfollow}>Following</button>;
                                     case "not following":
-                                        return <button className="btn btn-primary btn-md" onClick={onFollow}>Follow</button>;
+                                        return <button className="btn btn-primary btn-md" onClick={onFollow}>{profile.privateAccount ? "Request Follow" : "Follow"}</button>;
                                     case "requested":
-                                        return <button className="btn btn-disabled btn-md">Pending</button>;
+                                        return <button className="btn btn-disabled btn-md">Follow Request Pending</button>;
                                     default:
                                         return <button className="btn btn-primary btn-md">Follow</button>;
                                 }

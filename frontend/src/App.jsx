@@ -10,6 +10,7 @@ import PostPage from './pages/PostPage/PostPage'
 import ProfilePage from './pages/ProfilePage/ProfilePage'
 import NavBar from './components/NavBar'
 import BlockedUsers from './pages/Settings/BlockedUsers'
+import FollowRequests from './pages/Settings/FollowRequests'
 
 function App() {
   const auth = useSelector(state => state.auth);
@@ -24,6 +25,7 @@ function App() {
         <Route path="/post/:id" element={auth.currentUser ? <PostPage /> : <Navigate to="/login"/>} />
         <Route path="/profile/:username" element = {auth.currentUser ? <ProfilePage /> : <Navigate to="/login"/>} />
         <Route path="/blockedUsers" element = {auth.currentUser ? <BlockedUsers /> : <Navigate to="/login"/>} />
+        <Route path="/followRequests" element = {auth.currentUser ? <FollowRequests /> : <Navigate to="/login"/>} />
       </Routes>
     </div>
   )

@@ -44,7 +44,10 @@ const profileSlice = createSlice({
     name: "profile",
     initialState,
     reducers: {
-
+        unfollowed: (state) => {
+            state.following = false;
+            state.posts = [];
+        }
     },
     extraReducers: builder => {
         builder
@@ -80,3 +83,4 @@ const profileSlice = createSlice({
 });
 
 export default profileSlice.reducer;
+export const { unfollowed } = profileSlice.actions;

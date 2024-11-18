@@ -3,13 +3,10 @@ import User from "../models/userModel.js";
 
 export const myFollowRequests = async (req, res) => {
     try {
-        const followRequests = await FollowRequest.find({ receiver: req.user._id , status: "pending" }).populate("sender", "_id username profilePicture");
-        if (followRequests.length === 0) {
-            returnres.status(200).json({ message: "No follow requests" });
-        }
+        const followRequests = await FollowRequest.find({ receiver: req.user._id , status: "pending" }).populate("sender", "_id username displayName");
         return res.status(200).json(followRequests);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 }
 
@@ -36,7 +33,7 @@ export const acceptFollowRequest = async (req, res) => {
         await authUser.save();
         await sender.save();
         await followRequest.save();
-        res.status(200).json({ message: "Follow request accepted" });
+        res.status(200).json(sender._id);
     } catch (error) {
         console.log("acceptFollowRequest error", error.message);
         return res.status(500).json({ message: error.message });
@@ -46,6 +43,10 @@ export const acceptFollowRequest = async (req, res) => {
 export const declineFollowRequest = async (req, res) => {
     try {
         const followRequest = await FollowRequest.findById(req.params.id);
+        const sender = await User.findById(followRequest.sender);
+        if (!sender) {
+            return res.status(404).json({ message: "Sender not found" });
+        }
         if (!followRequest) {
             return res.status(404).json({ message: "Follow request not found" });
         }
@@ -54,7 +55,7 @@ export const declineFollowRequest = async (req, res) => {
         }
         followRequest.status = "declined";
         await followRequest.save();
-        res.status(200).json({ message: "Follow request declined" });
+        res.status(200).json(sender._id);
     } catch (error) {
         console.log("declineFollowRequest error", error.message);
         return res.status(500).json({ message: error.message });
