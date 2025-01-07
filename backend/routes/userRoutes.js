@@ -1,6 +1,6 @@
 import express from "express";
 import { protectRoute } from "../middleware/protectRoute.js";
-import { profile, followUser, unfollowUser, blockUser, unblockUser, isFollowingUser, blockedUsers, followers, followingUsers } from "../controllers/userController.js";
+import { profile, followUser, unfollowUser, blockUser, unblockUser, isFollowingUser, blockedUsers, followers, followingUsers, searchUsers } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -13,5 +13,6 @@ router.get("/following/:id", protectRoute, isFollowingUser);
 router.get("/blockedUsers", protectRoute, blockedUsers);
 router.get("/followers/:id", protectRoute, followers);
 router.get("/followingUsers/:id", protectRoute, followingUsers);
+router.get("/search/:query", protectRoute, searchUsers);
 
 export default router;

@@ -248,3 +248,25 @@ export const followingUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const searchUsers = async (req, res) => {
+    try {
+        const authUser = await User.findById(req.user._id);
+        const query = req.params.query;
+        if (!query || typeof query !== "string") {
+            return res.status(400).json({ message: "Invalid search query" });
+        }
+
+        const users = await User.find({ 
+            username: { $regex: new RegExp(query, "i") } 
+        }).select("username displayName profilePicture _id");
+
+        // Filter out users blocked by the authenticated user
+        const filteredUsers = users.filter(user => !authUser.blockedBy.includes(user._id.toString()));
+
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.log("searchUsers error", error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
