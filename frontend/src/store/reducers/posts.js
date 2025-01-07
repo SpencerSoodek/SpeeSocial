@@ -69,6 +69,20 @@ export const createReply = createAsyncThunk('posts/createReply', async(postData,
     }
 })
 
+export const deletePost = createAsyncThunk('posts/deletePost', async(postId, thunkAPI) => {
+    try {
+        const response = await axios.delete(('/api/posts/delete/' + postId), {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+        })
+        
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return thunkAPI.rejectWithValue(error.response.data.errors);
+    }
+})
+
 const postsSlice = createSlice({
     name: "posts",
     initialState,
@@ -102,7 +116,7 @@ const postsSlice = createSlice({
         })
         .addCase(createPost.fulfilled, (state, action) => {
             state.isLoading = false;
-            state.posts.push(action.payload);
+            state.posts.unshift(action.payload);
         })  
         .addCase(createPost.rejected, (state, action) => {
             state.isLoading = false;
@@ -116,6 +130,18 @@ const postsSlice = createSlice({
             state.isLoading = false;
         })
         .addCase(createReply.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.error = action.error.message;
+        })
+        .addCase(deletePost.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(deletePost.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.posts = state.posts.filter(post => post._id !== action.payload);
+        })
+        .addCase(deletePost.rejected, (state, action) => {
             state.isLoading = false;
             state.isError = true;
             state.error = action.error.message;

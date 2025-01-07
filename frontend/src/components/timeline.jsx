@@ -7,7 +7,7 @@ const Timeline = () => {
     return (
         <div className="w-full">
             <h1>{isLoading}</h1>
-            {isLoading? (
+            {isLoading && posts.length === 0 ? (
                 <p>Loading...</p>) :
             posts.map(post => (
                 <div key={post._id}>

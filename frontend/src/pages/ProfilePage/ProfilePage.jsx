@@ -1,17 +1,21 @@
 import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getProfile, getProfilePosts, unfollowed } from "../../store/reducers/profileReducer";
+import { getProfile, getProfilePosts, unfollowed, getFollowers, getFollowing } from "../../store/reducers/profileReducer";
 import { followingUser, followUser, unfollowUser } from "../../store/reducers/followReducer";
 import Post from "../../components/Post";
+import { useState } from "react";
 
 const ProfilePage = () => {
     const { username } = useParams();
     const dispatch = useDispatch();
     const auth = useSelector(state => state.auth);
 
-    const { profile, posts, blocked, private: isPrivate, isLoading, isError, errorMessage, following } = useSelector(state => state.profileReducer);
+    const { profile, posts, blocked, private: isPrivate, isLoading, isError, errorMessage, following, followers, usersFollowing } = useSelector(state => state.profileReducer);
     const { followingStatus, isLoading: followingIsLoading, isError: followingIsError } = useSelector(state => state.followReducer.followingUsers[profile?._id] || {});
+
+    // Use posts, followers, following
+    const [mode, setMode] = useState("posts");
     
     
     const currentUser = useMemo(() => {
@@ -22,6 +26,14 @@ const ProfilePage = () => {
     const myAccount = useMemo(() => {
         return profile && profile._id === auth.currentUser?._id;
     }, [profile, auth.currentUser]);
+
+    const getUserFollowers = () => {
+        dispatch(getFollowers(profile._id));
+    }
+
+    const getUserFollowing = () => {
+        dispatch(getFollowers(profile._id));
+    }
 
     useEffect(() => {
         if (username) {
@@ -100,7 +112,8 @@ const ProfilePage = () => {
                     <p>You are blocked by this user.</p> :
                     (isPrivate && !following && !myAccount) ? (
                         <p>This user is private. Only followers can view their posts.</p>
-                    ) : posts.length > 0 ? (
+                    ) :
+                    posts.length > 0 ? (
                         <ul>
                             {posts.map(post => (
                                 <Post key={post._id} post={post} />

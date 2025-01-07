@@ -201,7 +201,7 @@ export const deletePost = async (req, res) => {
     };
     await authUser.save();
     await Post.deleteOne({ _id: req.params.postId });
-    res.status(200).json({ message: "Post deleted successfully" });
+    res.status(200).json(req.params.postId);
   } catch (error) {
     console.log("deletePost error", error.message);
     res.status(500).json({ message: error.message });

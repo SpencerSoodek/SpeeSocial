@@ -178,3 +178,73 @@ export const blockedUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+export const followers = async (req, res) => {
+    try {
+        const authUser = await User.findById(req.user._id)
+        const user = await User.findById(req.params.id).populate({
+            path: "followers",
+            select: "username displayName profilePicture _id",
+            populate: {
+                path: "followers",
+                select: "username displayName profilePicture _id",
+            }
+        })
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const followers = user.followers;
+        followers.map(follower => {
+            if (authUser.blockedBy.includes(follower._id)) {
+                follower.amIBlocked = true;
+            } else {
+                follower.amIBlocked = false;
+            }
+            if (authUser.following.includes(follower._id)) {
+                follower.amIFollowing = true;
+            } else {
+                follower.amIFollowing = false;
+            }
+        })
+        return res.status(200).json(followers);
+    }
+    catch (error) {
+        console.log("followers error", error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const followingUsers = async (req, res) => {
+    try {
+        const authUser = await User.findById(req.user._id)
+        const user = await User.findById(req.params.id).populate({
+            path: "following",
+            select: "username displayName profilePicture _id",
+            populate: {
+                path: "following",
+                select: "username displayName profilePicture _id",
+            }
+        })
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const following = user.following;
+        following.map(follower => {
+            if (authUser.blockedBy.includes(follower._id)) {
+                follower.amIBlocked = true;
+            } else {
+                follower.amIBlocked = false;
+            }
+            if (authUser.following.includes(follower._id)) {
+                follower.amIFollowing = true;
+            } else {
+                follower.amIFollowing = false;
+            }
+        })
+        return res.status(200).json(following);
+    }
+    catch (error) {
+        console.log("followingUsers error", error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
