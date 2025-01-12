@@ -126,7 +126,7 @@ export const createPost = async (req, res) => {
 export const getPost = async (req, res) => {
   try {
     const authUser = await User.findById(req.user._id);
-    const post = await Post.findById(req.params.postId).populate({
+    let post = await Post.findById(req.params.postId).populate({
       path: "author",
       select: "username displayName profilePicture _id privateAccount",
     })
@@ -156,19 +156,28 @@ export const getPost = async (req, res) => {
     if (post.author.privateAccount && !req.user.following.includes(post.author._id) && post.author._id.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: "Private account" });
     }
+    const postobj = post.toObject();
+    if (post.parentPost && post.parentPost.author.privateAccount && !authUser.following.includes(post.parentPost.author._id) && authUser._id.toString() !== post.parentPost.author._id.toString()) {
+      console.log("not following parent post author");
+      postobj.parentPost.private = true;
+      console.log("post.parentPost: ", post.parentPost);
+    } else {
+      if (post.parentPost) {
+        postobj.parentPost.private = false;
+      }
+    }
 
-    post.replies = post.replies.filter((reply) => {
+    postobj.replies = postobj.replies.filter((reply) => {
       if (authUser.blockedBy.includes(reply.author._id)) {
         return false;
       }
       return true;
     })
 
-    post.replies = post.replies.sort((a, b) => {
+    postobj.replies = postobj.replies.sort((a, b) => {
       return b.createdAt - a.createdAt;
     });
-    console.log(post);
-    res.status(200).json(post);
+    res.status(200).json(postobj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getPost } from "../../store/reducers/postPageReducer";
 import { useParams } from "react-router-dom";
 import Post from "../../components/Post";
+import PrivatePost from "../../components/PrivatePost";
 import ReplyToPost from "../../components/ReplyToPost";
 
 export const PostPage = () => {
@@ -28,8 +29,9 @@ export const PostPage = () => {
                 <p>Error: {errorMessage || "An error occurred while fetching the post."}</p>
             ) : ( post &&
                 <div>
-                    {post.parentPost? (
-                    <Post post={post.parentPost} />) : null}
+                    {post.parentPost && (
+                        post.parentPost.private? <PrivatePost />: <Post post={post.parentPost} />
+                    )}
                 <div className="border border-t-0border-neutral-content p-3 bg-base-100 mx-auto text-left pt-5 pb-5" >
                     <div>
                     <div className="flex items-center whitespace-nowrap mb-2">
