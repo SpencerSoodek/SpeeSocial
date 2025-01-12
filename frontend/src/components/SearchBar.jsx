@@ -14,12 +14,8 @@ const SearchBar = () => {
     const onSearchForUsers = () => {
         if (searchTerm.trim().length >= 2) {
             dispatch(searchUsers(searchTerm));
+            setResultsVisible(true);
         }
-    };
-
-    const handleInput = (e) => {
-        const text = e.target.innerText.slice(0, 20);
-        setSearchTerm(text);
     };
 
     const handleResultClick = (userId) => {
@@ -29,26 +25,17 @@ const SearchBar = () => {
 
     return (
         <div className="relative">
-            <div
-                contentEditable="true"
-                className="resize-none bg-base-100 p-2 pl-4 focus:outline-none min-w-96 rounded-full placeholder:text-neutral-400 text-content whitespace-nowrap overflow-hidden"
-                role="textbox"
-                aria-placeholder="Search"
-                suppressContentEditableWarning={true}
-                onInput={(e) => {
-                    handleInput(e);
-                    if (e.target.innerText.trim().length >= 2) {
-                        onSearchForUsers();
-                    }
-                }}
+            <input type="text" placeholder="Search" className="input input-bordered w-full max-w-md"
                 onFocus={() => setResultsVisible(true)}
-                onBlur={(e) => {
-                    if (!e.relatedTarget || !e.relatedTarget.closest('.search-result')) {
+                onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    if (e.target.value.trim().length >= 2) {
+                        onSearchForUsers();
+                    } else {
                         setResultsVisible(false);
                     }
-                }}>
-                {searchTerm === "" && <span className="text-neutral-400">Search</span>}
-            </div>
+                }}
+            />
             {users.length > 0 && resultsVisible && (
                 <div className="absolute left-0 mt-2 w-full bg-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
                     {users.map((user) => (
@@ -57,7 +44,7 @@ const SearchBar = () => {
                             className="search-result px-4 py-2 hover:bg-base-200 cursor-pointer"
                             onMouseDown={(e) => {
                                 e.stopPropagation();
-                                handleResultClick(user._id);
+                                handleResultClick(user.username);
                             }}>
                             {user.username}
                         </div>
