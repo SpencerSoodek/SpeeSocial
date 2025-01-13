@@ -127,7 +127,7 @@ export const updateUser = async (req, res) => {
                 return res.status(400).json({message: "Invalid password"});
             }
         }
-        if (username) {
+        if (username && username !== user.username) {
             if (await User.findOne({username})) {
                 return res.status(400).json({message: "Username already exists"});
             } else {
@@ -141,10 +141,10 @@ export const updateUser = async (req, res) => {
                 user.email = email;
             }
         }
-        if (bio) {
+        if (bio && bio !== user.bio && bio !== "") {
             user.bio = bio;
         }
-        if (displayName) {
+        if (displayName && displayName !== user.displayName && displayName !== "") {
             user.displayName = displayName;
         }
         if (privateAccount) {
@@ -155,6 +155,7 @@ export const updateUser = async (req, res) => {
             _id: user._id,
             username: user.username, 
             email: user.email, 
+            bio: user.bio,
             displayName: user.displayName, 
             privateAccount: user.privateAccount,
             followers: user.followers, 

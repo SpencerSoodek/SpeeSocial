@@ -12,7 +12,8 @@ const initialState = {
     error: '',
     posts: [],
     followers: [],
-    usersFollowing: []
+    usersFollowing: [],
+    usernameChanged: false,
 };
 
 export const getProfile = createAsyncThunk('profile/getProfile', async(username, thunkAPI) => {
@@ -61,6 +62,25 @@ export const getFollowing = createAsyncThunk('profile/getFollowing', async(userI
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true
         })
+        return response.data;
+    }
+    catch(error) {
+        return thunkAPI.rejectWithValue(error.response.data.errors);
+    }
+})
+
+export const updateProfile = createAsyncThunk('profile/updateProfile', async(data, thunkAPI) => {
+    console.log(data);
+    
+    try{
+        const response = await axios.post('/api/auth/update', {
+            username: data.username,
+            displayName: data.displayName,
+            bio: data.bio
+        }, {
+            headers: { 'Content-Type': 'application/json' },
+            withCredentials: true
+        });
         return response.data;
     }
     catch(error) {
@@ -127,6 +147,22 @@ const profileSlice = createSlice({
             state.usersFollowing = action.payload;
         })
         .addCase(getFollowing.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.error = action.error.message;
+        })
+        .addCase(updateProfile.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(updateProfile.fulfilled, (state, action) => {
+            console.log("fulfilled");
+            state.isLoading = false;
+            action.payload.bio ? state.profile.bio = action.payload.bio: null;
+            action.payload.displayName ? state.profile.displayName = action.payload.displayName: null;
+            action.payload.username ? state.profile.username = action.payload.username: null;
+
+        })
+        .addCase(updateProfile.rejected, (state, action) => {
             state.isLoading = false;
             state.isError = true;
             state.error = action.error.message;

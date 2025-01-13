@@ -5,6 +5,7 @@ import { getProfile, getProfilePosts, unfollowed, getFollowers, getFollowing } f
 import { followingUser, followUser, unfollowUser } from "../../store/reducers/followReducer";
 import Post from "../../components/Post";
 import { useState } from "react";
+import EditProfileMenu from "../../components/EditProfileMenu";
 
 const ProfilePage = () => {
     const { username } = useParams();
@@ -13,9 +14,7 @@ const ProfilePage = () => {
 
     const { profile, posts, blocked, private: isPrivate, isLoading, isError, errorMessage, following, followers, usersFollowing } = useSelector(state => state.profileReducer);
     const { followingStatus, isLoading: followingIsLoading, isError: followingIsError } = useSelector(state => state.followReducer.followingUsers[profile?._id] || {});
-
-    // Use posts, followers, following
-    const [mode, setMode] = useState("posts");
+    const [editingProfile, setEditingProfile] = useState(false);
     
     
     const currentUser = useMemo(() => {
@@ -27,13 +26,6 @@ const ProfilePage = () => {
         return profile && profile._id === auth.currentUser?._id;
     }, [profile, auth.currentUser]);
 
-    const getUserFollowers = () => {
-        dispatch(getFollowers(profile._id));
-    }
-
-    const getUserFollowing = () => {
-        dispatch(getFollowers(profile._id));
-    }
 
     useEffect(() => {
         if (username) {
@@ -71,6 +63,15 @@ const ProfilePage = () => {
         });
     }
 
+    const handleSetEditing = () => {
+        console.log("editing");
+        setEditingProfile(true);
+    }
+
+    const handleCloseEditing = () => {
+        setEditingProfile(false);
+    }
+
     return (
         <div className="max-w-lg mx-auto">
             {isLoading || !profile? (
@@ -80,18 +81,20 @@ const ProfilePage = () => {
                 {
                     console.log("blocked", blocked, "isPrivate", isPrivate, "following", following, "myAccount", myAccount)
                 }
+                {editingProfile ? (
+                    <EditProfileMenu profile={profile} closeMenu={handleCloseEditing} />) : (
                 <div className="border border-neutral-content p-3 bg-base-100 mx-auto text-left pt-5 pb-5">
                     {profile.displayName &&<h1 className="text-2xl font-bold mb-4 text-primary">{profile?.displayName}</h1>}
                     <p className="text-lg font-semibold text-gray-500 pb-3">{profile?.username}</p>
                     {profile?.bio && <p className="text-md text-gray-50">{profile?.bio}</p>}
                     <div className="flex justify-end mb-2">
                         {profile?.myAccount ? (
-                            <button className="btn btn-primary btn-md">Edit Profile</button>
+                            <button className="btn btn-primary btn-md" onClick={handleSetEditing}>Edit Profile</button>
                         ) : !followingIsLoading && !followingIsError&& !isLoading ? (
                             (() => {
                                 switch (followingStatus) {
                                     case "me":
-                                        return <button className="btn btn-primary btn-md">Edit Profile</button>;
+                                        return <button className="btn btn-primary btn-md" onClick={handleSetEditing}>Edit Profile</button>;
                                     case "following":
                                         return <button className="btn btn-secondary btn-md" onClick={onUnfollow}>Following</button>;
                                     case "not following":
@@ -106,8 +109,7 @@ const ProfilePage = () => {
                             <p>Loading follow status...</p>
                         )}
                     </div>
-                </div>
-                
+                </div>)}
                 {blocked ? 
                     <p>You are blocked by this user.</p> :
                     (isPrivate && !following && !myAccount) ? (
