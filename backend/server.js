@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import connectToMongoDB from "./db/connectToMongoDB.js";
-const port = 3000;
 import dotenv from "dotenv";
 import path from "path";
 import authRoutes from "./routes/authRoutes.js";
@@ -10,6 +9,8 @@ import followRequestRoutes from "./routes/followRequestRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+
+const port = 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,9 +36,12 @@ app.use("/api/users", userRoutes);
 app.use("/api/followRequests", followRequestRoutes);
 app.use("/api/posts", postRoutes);
 
-app.get("/", (req, res) => {
-    res.send("Hello World!");
-});
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.resolve(__dirname, "../frontend/dist")));
+    app.get("*", (req, res) => {
+        res.sendFile(path.resolve)(__dirname, "../frontend/dist/index.html");
+    });
+}
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
